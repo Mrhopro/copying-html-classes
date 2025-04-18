@@ -11,9 +11,24 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:extension.extractScss"
+  ],
   "main": "./extension.js",
   "contributes": {
+    "configuration": {
+    "type": "object",
+    "title": "SCSS Extractor",
+    "properties": {
+      "scssExtractor.defaultAction": {
+        "type": "string",
+        "default": "copy",
+        "enum": ["copy", "preview"],
+        "description": "Default action for SCSS generation. Choose 'copy' to only copy to clipboard or 'preview' to show a preview after copying."
+      }
+    }
+  },
     "commands": [
       {
         "command": "extension.extractScss",

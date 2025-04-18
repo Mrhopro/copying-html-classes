@@ -7,12 +7,15 @@ const traverse = require('@babel/traverse').default;
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-  const disposable = vscode.commands.registerCommand('extension.extractScss', async () => {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-      vscode.window.showErrorMessage('Відкрий файл, будь ласка.');
-      return;
-    }
+	const config = vscode.workspace.getConfiguration('scssExtractor');
+
+	const disposable = vscode.commands.registerCommand('extension.extractScss', async () => {
+	  const editor = vscode.window.activeTextEditor;
+	  if (!editor) {
+		const msg = getText('Відкрий файл, будь ласка.', 'Please open a file.');
+		vscode.window.showErrorMessage(msg);
+		return;
+	  }  
 
     const text = editor.document.getText();
     const lang = editor.document.languageId;
@@ -58,7 +61,8 @@ function activate(context) {
           plugins: ['jsx', 'classProperties', 'typescript']
         });
       } catch (e) { // якщо не вдалось зпарсити то показуємо помилку (e - це помилка)
-        vscode.window.showErrorMessage('Помилка парсингу JSX: ' + e.message);
+        const msg = getText('Помилка парсингу JSX: ', 'JSX parsing error: ') + e.message;
+          vscode.window.showErrorMessage(msg);
         return;
       }
       // Рекурсивна обробка JSX-елемента
@@ -113,17 +117,57 @@ function activate(context) {
     }
 
     if (!scss.trim()) { // якщо результат пустий
-      vscode.window.showInformationMessage('Класи не знайдені.'); // показуємо повідомлення
+		const msg = getText('Класи не знайдені.', 'No classes found.');
+		vscode.window.showInformationMessage(msg); // показуємо повідомлення
       return; // виходимо з функції
     }
 
     await vscode.env.clipboard.writeText(scss.trim()); // копіюємо результат в буфер обміну
     const count = (scss.match(/^\s*\./gm) || []).length; // рахуємо кількість класів
-    vscode.window.showInformationMessage(`Згенеровано ${count} вкладених SCSS-блоків і скопійовано в буфер обміну.`); // показуємо повідомлення
+    const defaultChoice = config.get('defaultAction', 'copy');  // Отримуємо налаштування
+
+    const choice = await vscode.window.showQuickPick([
+      getText('Лише скопіювати', 'Copy only'),
+      getText('Скопіювати і показати попередній перегляд', 'Copy and show preview')
+    ], {
+      placeHolder: getText(`Згенеровано ${count} SCSS-блоків. Що робимо далі?`, `Generated ${count} SCSS blocks. What do you want to do?`),
+      canPickMany: false
+    });
+
+    // Оновлюємо налаштування, якщо вибір зроблено
+    if (choice) {
+      const newChoice = choice === getText('Скопіювати і показати попередній перегляд', 'Copy and show preview') ? 'preview' : 'copy';
+      config.update('defaultAction', newChoice, vscode.ConfigurationTarget.Global);
+    }
+
+    if (choice === getText('Скопіювати і показати попередній перегляд', 'Copy and show preview') || defaultChoice === 'preview') {
+      const doc = await vscode.workspace.openTextDocument({ content: scss.trim(), language: 'scss' });
+      await vscode.window.showTextDocument(doc);
+    } else {
+      const msg = getText(
+        `Згенеровано ${count} SCSS-блоків і скопійовано в буфер обміну.`,
+        `Generated ${count} SCSS blocks and copied to clipboard.`
+      );
+      vscode.window.showInformationMessage(msg);
+    }
   });
 
   context.subscriptions.push(disposable); // реєструємо команду
+
+  // Додаємо кнопку в нижню панель
+  const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+  statusBarItem.text = '$(code) SCSS Extract'; // текст та іконка кнопки
+  statusBarItem.tooltip = getText('Згенерувати SCSS з HTML/JSX', 'Generate SCSS from HTML/JSX'); // підказка при наведенні
+  statusBarItem.command = 'extension.extractScss'; // команда яку викликає кнопка
+  statusBarItem.show(); // показуємо кнопку
+  context.subscriptions.push(statusBarItem); // додаємо до підписок
 }
+
+function getText(ua, en) {
+	const locale = vscode.env.language;
+	return locale.startsWith('uk') ? ua : en;
+  }
+
 
 function deactivate() {} // функція деактивації (Я її не використовую)
 
