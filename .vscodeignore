@@ -1,0 +1,33 @@
+.vscode/**
+.vscode-test/**
+test/**
+.gitignore
+.yarnrc
+vsc-extension-quickstart.md
+**/jsconfig.json
+**/*.map
+**/eslint.config.mjs
+**/.vscode-test.*
+# .vscodeignore
+
+# Node modules, залежності встановлюються під час інсталяції
+node_modules
+
+# Налаштування VS Code
+.vscode
+
+# Git
+.git
+.gitignore
+
+# Тести або чорнові файли
+**/*.test.*
+**/__tests__/**
+
+# Системні файли
+*.log
+*.DS_Store
+*.env
+
+# Всі .vsix файли, якщо не потрібно включати старі збірки
+*.vsix
