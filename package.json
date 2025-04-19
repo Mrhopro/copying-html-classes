@@ -1,13 +1,13 @@
 {
   "name": "extract-scss-classes",
-  "icon": "icon.png",
   "displayName": "Extract SCSS Classes",
-  "description": "Extension for copying SCSS blocks from HTML/JSX classes with nesting in mind.",
   "publisher": "Mrhopro",
-  "version": "0.0.2",
+  "description": "Extension for copying SCSS blocks from HTML/JSX classes with nesting in mind.",
+  "version": "0.0.8",
   "engines": {
-    "vscode": "^1.99.0"
+    "vscode": "^1.70.0"
   },
+  "icon": "icon.png",
   "categories": [
     "Other"
   ],
@@ -17,18 +17,6 @@
   ],
   "main": "./extension.js",
   "contributes": {
-    "configuration": {
-    "type": "object",
-    "title": "SCSS Extractor",
-    "properties": {
-      "scssExtractor.defaultAction": {
-        "type": "string",
-        "default": "copy",
-        "enum": ["copy", "preview"],
-        "description": "Default action for SCSS generation. Choose 'copy' to only copy to clipboard or 'preview' to show a preview after copying."
-      }
-    }
-  },
     "commands": [
       {
         "command": "extension.extractScss",
@@ -42,18 +30,15 @@
     "pretest": "npm run lint",
     "test": "vscode-test"
   },
-  "devDependencies": {
-    "@babel/parser": "^7.27.0",
-    "@babel/traverse": "^7.27.0",
-    "@types/mocha": "^10.0.10",
-    "@types/node": "20.x",
-    "@types/vscode": "^1.99.0",
-    "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.5.2",
-    "eslint": "^9.23.0"
-  },
   "dependencies": {
-    "axios": "^1.8.4",
-    "cheerio": "^1.0.0"
+    "cheerio": "^1.0.0-rc.12",
+    "@babel/parser": "^7.27.0",
+    "@babel/traverse": "^7.27.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.x",
+    "@types/vscode": "^1.70.0",
+    "eslint": "^9.0.0",
+    "@vscode/test-electron": "^2.5.2"
   }
 }

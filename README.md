@@ -15,10 +15,6 @@ An extension for Visual Studio Code that extracts all CSS classes from HTML or J
 - Displays the number of extracted SCSS blocks
 - SCSS preview
 - Instantly copy the result to the clipboard
-- Interactive selection of action after generation:
-- Copy only
-- Copy and show preview
-- Automatic saving of user selection with the ability to change in VS Code settings
 - Localization: Ukrainian and English interface language (automatically determined based on VS Code language)
 - Button in the status bar for quick launch
 
@@ -28,8 +24,7 @@ An extension for Visual Studio Code that extracts all CSS classes from HTML or J
 
 1. Open an HTML or JSX/TSX file in VS Code.
 2. Open the Command Palette (`Ctrl+Shift+P` or `F1`) and run:
-3. After generation, a prompt will appear: copy only or show preview.
-4. The selection will be saved and will be used by default next time (it can be changed in the settings).
+```Extract SCSS from HTML/JSX```
 
 ---
 
@@ -56,12 +51,6 @@ SCSS:
 }
 ```
 
-## Known limitations
-
-- No SCSS will be generated in HTML/JSX without classes
-
-- Dynamically generated class names may not be fully processed
-
 Author
 
 Created with ❤️ by [Mrhopro]
@@ -83,12 +72,8 @@ Created with ❤️ by [Mrhopro]
  - Повідомлення про кількість згенерованих SCSS-блоків
  - Попередній перегляд SCSS
  - Миттєве копіювання результату у буфер обміну
-- Інтерактивний вибір дії після генерації:
-  - Лише скопіювати
-  - Скопіювати і показати попередній перегляд
-- Автоматичне запам'ятовування вибору користувача з можливістю зміни в налаштуваннях VS Code
-- Локалізація: українська та англійська мова інтерфейсу (визначається автоматично на основі мови VS Code)
-- Кнопка в статус-барі для швидкого запуску
+ - Локалізація: українська та англійська мова інтерфейсу (визначається автоматично на основі мови VS Code)
+ - Кнопка в статус-барі для швидкого запуску
 
 ---
 
@@ -97,9 +82,7 @@ Created with ❤️ by [Mrhopro]
  1. Відкрий HTML або JSX/TSX файл у VS Code.
  2. Відкрий палітру команд (`Ctrl+Shift+P` або `F1`) і введи:
  ```Extract SCSS from HTML/JSX```
- 3. Після генерації з'явиться запит: лише скопіювати чи показати попередній перегляд.
- 4. Вибір збережеться і буде використовуватись за замовчуванням наступного разу (його можна змінити в налаштуваннях).
-
+ 
 ---
 
  ## 💡 Приклад
@@ -123,11 +106,6 @@ SCSS:
   }
 }
 ```
-
-## Відомі обмеження
-
-- У HTML/JSX без класів не буде згенеровано SCSS
-- Динамічно сформовані імена класів можуть не бути оброблені повністю
 
 Автор
 
