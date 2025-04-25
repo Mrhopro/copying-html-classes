@@ -13,7 +13,6 @@ An extension for Visual Studio Code that extracts all CSS classes from HTML or J
 - Generates **nested** SCSS
 - Copies the result to clipboard
 - Displays the number of extracted SCSS blocks
-- SCSS preview
 - Instantly copy the result to the clipboard
 - Localization: Ukrainian and English interface language (automatically determined based on VS Code language)
 - Button in the status bar for quick launch
@@ -70,7 +69,6 @@ Created with ❤️ by [Mrhopro]
  - Генерація SCSS з вкладеністю
  - Копіювання результату у буфер обміну
  - Повідомлення про кількість згенерованих SCSS-блоків
- - Попередній перегляд SCSS
  - Миттєве копіювання результату у буфер обміну
  - Локалізація: українська та англійська мова інтерфейсу (визначається автоматично на основі мови VS Code)
  - Кнопка в статус-барі для швидкого запуску
