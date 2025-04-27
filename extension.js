@@ -3,17 +3,11 @@ const cheerio = require('cheerio');
 const parser = require('@babel/parser');
 const traverse = require('@babel/traverse').default;
 
+// polyfill Web Streams для Extension Host
 const { ReadableStream, WritableStream } = require('stream/web');
-if (typeof global.ReadableStream === 'undefined') {
-  global.ReadableStream = ReadableStream;
-}
-if (typeof global.WritableStream === 'undefined') {
-  global.WritableStream = WritableStream;
-}
+if (typeof global.ReadableStream === 'undefined') global.ReadableStream = ReadableStream;
+if (typeof global.WritableStream === 'undefined') global.WritableStream = WritableStream;
 
-/**
- * @param {vscode.ExtensionContext} context
- */
 function activate(context) {
   const disposable = vscode.commands.registerCommand('extension.extractScss', async () => {
     const editor = vscode.window.activeTextEditor;
@@ -26,34 +20,43 @@ function activate(context) {
     const lang = editor.document.languageId;
     let scss = '';
 
-    // HTML-парсинг через cheerio
+    // ── HTML ──────────────────────────────────────────────────────────────────────
     if (lang === 'html') {
       const $ = cheerio.load(text);
       function processElement(el, level = 0) {
         let result = '';
         const indent = '  '.repeat(level);
         const classAttr = $(el).attr('class');
+        const idAttr    = $(el).attr('id');
+        const tag       = el.tagName;
+
+        let names = [];
         if (classAttr) {
-          const names = classAttr.split(/\s+/);
-          names.forEach(name => {
-            result += `${indent}.${name} {\n`;
-            $(el).children().each((_, child) => {
-              result += processElement(child, level + 1);
-            });
-            result += `${indent}}\n`;
-          });
+          names = classAttr.split(/\s+/).map(c => `.${c}`);
+        } else if (idAttr) {
+          names = [`#${idAttr}`];
         } else {
-          $(el).children().each((_, child) => {
-            result += processElement(child, level);
-          });
+          names = [tag];
         }
+
+        names.forEach(name => {
+          result += `${indent}${name} {\n`;
+          $(el).children().each((_, child) => {
+            result += processElement(child, level + 1);
+          });
+          result += `${indent}}\n`;
+        });
         return result;
       }
-      const root = $('body').length ? $('body').get(0) : $.root().get(0);
-      scss = processElement(root);
+
+      // ітеруємось по дітях body/root, щоб не було блоку body {…}
+      const root = $('body').length ? $('body') : $.root();
+      root.children().each((_, child) => {
+        scss += processElement(child, 0);
+      });
     }
 
-    // JSX/React-парсинг через Babel
+    // ── JSX/React ─────────────────────────────────────────────────────────────────
     if (lang.startsWith('javascript') || lang.startsWith('typescript')) {
       let ast;
       try {
@@ -70,89 +73,84 @@ function activate(context) {
         let result = '';
         const indent = '  '.repeat(level);
 
-        // дістати className/class
+        // отримати className / id / тег
         const opening = node.openingElement;
-        const classAttr = opening.attributes.find(a =>
-          a.name && (a.name.name === 'className' || a.name.name === 'class')
-        );
+        const attrs = opening.attributes || [];
+        const clsNode = attrs.find(a => a.name && (a.name.name === 'className' || a.name.name === 'class'));
+        const idNode  = attrs.find(a => a.name && a.name.name === 'id');
+        const tag     = opening.name.name;
+
         let classNames = [];
-        if (classAttr && classAttr.value) {
-          const val = classAttr.value;
-          if (val.type === 'StringLiteral') {
-            classNames = val.value.split(/\s+/);
-          } else if (val.type === 'JSXExpressionContainer') {
-            const expr = val.expression;
-            if (expr.type === 'StringLiteral') {
-              classNames = expr.value.split(/\s+/);
-            } else if (expr.type === 'TemplateLiteral') {
-              expr.quasis.forEach(q =>
-                q.value.raw.split(/\s+/).forEach(c => c && classNames.push(c))
-              );
+        if (clsNode && clsNode.value) {
+          const v = clsNode.value;
+          if (v.type === 'StringLiteral') classNames = v.value.split(/\s+/);
+          else if (v.type === 'JSXExpressionContainer') {
+            const e = v.expression;
+            if (e.type === 'StringLiteral') classNames = e.value.split(/\s+/);
+            else if (e.type === 'TemplateLiteral') {
+              e.quasis.forEach(q => q.value.raw.split(/\s+/).forEach(c => c && classNames.push(c)));
             }
           }
         }
 
-        // обробка будь-якого child (JSXElement або вираз)
+        let names;
+        if (classNames.length) {
+          names = classNames.map(c => `.${c}`);
+        } else if (idNode && idNode.value && idNode.value.type === 'StringLiteral') {
+          names = [`#${idNode.value.value}`];
+        } else {
+          names = [tag];
+        }
+
+        // обробка будь-якого child (JSXElement або ExpressionContainer з map/масивом)
         function handleChild(child, lvl) {
           if (child.type === 'JSXElement') {
             return processJSX(child, lvl);
           }
           if (child.type === 'JSXExpressionContainer') {
-            const expr = child.expression;
-            if (expr.type === 'JSXElement') {
-              return processJSX(expr, lvl);
+            const e = child.expression;
+            if (e.type === 'JSXElement') {
+              return processJSX(e, lvl);
             }
-            if (expr.type === 'ArrayExpression' || expr.type === 'CallExpression') {
-              // якщо map() або масив
-              const nodes = [];
-              if (expr.type === 'ArrayExpression') {
-                nodes.push(...expr.elements);
-              } else if (expr.callee?.property?.name === 'map') {
-                const fn = expr.arguments[0];
-                if (fn.body) {
-                  if (fn.body.type === 'JSXElement') {
-                    nodes.push(fn.body);
-                  } else if (fn.body.type === 'BlockStatement') {
-                    fn.body.body.forEach(st => {
-                      if (st.type === 'ReturnStatement' && st.argument?.type === 'JSXElement') {
-                        nodes.push(st.argument);
-                      }
-                    });
-                  }
+            // масив literal-елементів
+            if (e.type === 'ArrayExpression') {
+              return e.elements.map(el => el && el.type === 'JSXElement' ? processJSX(el, lvl) : '').join('');
+            }
+            // .map(...)
+            if (e.type === 'CallExpression' && e.callee.property?.name === 'map') {
+              const fn = e.arguments[0];
+              if (fn.body) {
+                if (fn.body.type === 'JSXElement') return processJSX(fn.body, lvl);
+                if (fn.body.type === 'BlockStatement') {
+                  return fn.body.body
+                    .filter(st => st.type === 'ReturnStatement' && st.argument?.type === 'JSXElement')
+                    .map(st => processJSX(st.argument, lvl))
+                    .join('');
                 }
               }
-              return nodes.map(n => n ? processJSX(n, lvl) : '').join('');
             }
           }
           return '';
         }
 
-        if (classNames.length) {
-          classNames.forEach(name => {
-            result += `${indent}.${name} {\n`;
-            node.children.forEach(c => {
-              result += handleChild(c, level + 1);
-            });
-            result += `${indent}}\n`;
-          });
-        } else {
+        names.forEach(name => {
+          result += `${indent}${name} {\n`;
           node.children.forEach(c => {
-            result += handleChild(c, level);
+            result += handleChild(c, level + 1);
           });
-        }
-
+          result += `${indent}}\n`;
+        });
         return result;
       }
 
-      // Тепер обробляємо лише ті JSXElement, які мають батька типу Program або ReturnStatement,
-      // але не ті, що всередині JSXExpressionContainer чи інших JSXElement
       traverse(ast, {
         JSXElement(path) {
-          const parent = path.parentPath;
+          const p = path.parentPath;
+          // тільки якщо батько – Program, ExpressionStatement або ReturnStatement
           if (
-            parent.isProgram() ||
-            parent.isExpressionStatement() ||
-            parent.isReturnStatement()
+            p.isProgram() ||
+            p.isExpressionStatement() ||
+            p.isReturnStatement()
           ) {
             scss += processJSX(path.node, 0);
           }
@@ -166,7 +164,7 @@ function activate(context) {
     }
 
     await vscode.env.clipboard.writeText(scss.trim());
-    const count = (scss.match(/^\s*\./gm) || []).length;
+    const count = (scss.match(/^\s*(\.|#|\w)/gm) || []).length;
     vscode.window.showInformationMessage(
       getText(
         `Згенеровано ${count} SCSS-блоків і скопійовано в буфер обміну.`,
@@ -177,7 +175,6 @@ function activate(context) {
 
   context.subscriptions.push(disposable);
 
-  // кнопка в статус-барі
   const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
   statusBarItem.text = '$(code) SCSS Extract';
   statusBarItem.tooltip = getText('Згенерувати SCSS з HTML/JSX', 'Generate SCSS from HTML/JSX');
@@ -187,10 +184,9 @@ function activate(context) {
 }
 
 function getText(ua, en) {
-  const locale = vscode.env.language;
-  return locale.startsWith('uk') ? ua : en;
+  return vscode.env.language.startsWith('uk') ? ua : en;
 }
 
-function deactivate() {} // функція деактивації (не використовується)
+function deactivate() {}
 
 module.exports = { activate, deactivate };
