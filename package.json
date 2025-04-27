@@ -3,7 +3,7 @@
   "displayName": "Extract SCSS Classes",
   "publisher": "Mrhopro",
   "description": "Extension for copying SCSS blocks from HTML/JSX classes with nesting in mind.",
-  "version": "0.0.9",
+  "version": "0.1.2",
   "engines": {
     "vscode": "^1.70.0"
   },
