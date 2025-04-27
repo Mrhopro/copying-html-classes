@@ -3,7 +3,7 @@
   "displayName": "Extract SCSS Classes",
   "publisher": "Mrhopro",
   "description": "Extension for copying SCSS blocks from HTML/JSX classes with nesting in mind.",
-  "version": "0.1.3",
+  "version": "0.1.5",
   "engines": {
     "vscode": "^1.70.0"
   },
@@ -12,8 +12,12 @@
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished",
-    "onCommand:extension.extractScss"
+    "onCommand:extension.extractScss",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescriptreact",
+    "onLanguage:html",
+    "onLanguage:javascript",
+    "onLanguage:typescript"
   ],
   "main": "./extension.js",
   "contributes": {
@@ -23,7 +27,46 @@
         "title": "Extract SCSS from HTML/JSX",
         "category": "SCSS Tools"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Extract SCSS Classes Configuration",
+      "properties": {
+        "scssSassGenerator.syntax": { 
+          "type": "string",
+          "enum": [
+            "scss",
+            "sass"
+          ],
+          "default": "scss",
+          "description": "Choose the syntax for the generated code (scss or sass)."
+        },
+        "scssSassGenerator.selectorType": { 
+          "type": "string",
+          "enum": [
+            "full",
+            "simple"
+          ],
+          "default": "full",
+          "description": "Choose the type of selectors to generate. 'full' includes tag names (e.g., div.class), 'simple' only includes classes and IDs (.class, #id)."
+        },
+        "scssSassGenerator.outputMethod": { 
+          "type": "string",
+          "enum": [
+            "ask",
+            "clipboard",
+            "preview",
+            "file"
+          ],
+          "default": "ask",
+          "description": "Choose how to output the generated code. 'ask' prompts you each time, 'clipboard' copies directly, 'preview' shows in a new tab, 'file' prompts to save."
+        },
+         "scssSassGenerator.generateComponentSelectors": { 
+            "type": "boolean",
+            "default": false,
+            "description": "Set to true to generate selectors for React/Vue components based on their static classes or IDs."
+         }
+      }
+    }
   },
   "scripts": {
     "lint": "eslint .",
