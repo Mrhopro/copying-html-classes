@@ -1,0 +1,125 @@
+/* style.css — Creative, fun styling for your test.html layout */
+
+/* Base reset & body */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1f1c2c, #928dab);
+    color: #f0f0f5;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Center wrapper and give it a neon glow */
+  .wrapper {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(146, 141, 171, 0.6);
+    max-width: 600px;
+    width: 100%;
+  }
+  
+  /* Title with animated underline */
+  .title {
+    font-size: 2.5rem;
+    position: relative;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  .title::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    width: 0;
+    height: 4px;
+    background: #ff79c6;
+    border-radius: 2px;
+    transition: width 0.5s ease, left 0.5s ease;
+  }
+  .title:hover::after {
+    width: 60%;
+    left: 20%;
+  }
+  
+  /* Subtitle with bouncing dot animation */
+  .subtitle {
+    display: inline-block;
+    width: 10px; height: 10px;
+    background: #8be9fd;
+    border-radius: 50%;
+    animation: bounce 1s infinite alternate;
+    margin-right: 0.5rem;
+  }
+  @keyframes bounce {
+    to { transform: translateY(-10px); }
+  }
+  
+  /* Section partners grid */
+  .partners {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+  .partners img {
+    width: 100%;
+    height: auto;
+    border: 2px solid #50fa7b;
+    border-radius: 8px;
+    transition: transform 0.3s ease, filter 0.3s ease;
+  }
+  .partners img:hover {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+  }
+  
+  /* Default styling for images without class */
+  img:not(.partner) {
+    opacity: 0.8;
+    filter: grayscale(50%);
+  }
+  
+  /* Footer styling */
+  #main-footer {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(0,0,0,0.2);
+    border-top: 1px solid #6272a4;
+    border-radius: 0 0 8px 8px;
+    margin-top: 2rem;
+  }
+  #main-footer p {
+    font-size: 0.9rem;
+    color: #bd93f9;
+    margin-bottom: 0.5rem;
+  }
+  #footer-link {
+    color: #ffb86c;
+    text-decoration: none;
+    font-weight: bold;
+    position: relative;
+  }
+  #footer-link::after {
+    content: ' ↗';
+    font-size: 0.8rem;
+  }
+  #footer-link:hover {
+    color: #ff5555;
+  }
+  
+  /* Style generic tags inside wrapper when no class/id */
+  .wrapper > div {
+    padding: 0.5rem;
+    border: 1px dashed rgba(255,255,255,0.2);
+    margin-bottom: 1rem;
+    border-radius: 4px;
+  }
+  
